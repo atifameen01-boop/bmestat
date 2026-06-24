@@ -14,7 +14,7 @@
   <!-- MathJax for rendering LaTeX formulas dynamically -->
   <script>
     window.MathJax = {
-      tex: {
+      text: {
         inlineMath: [['$', '$'], ['\\(', '\\)']],
         displayMath: [['$$', '$$'], ['\\[', '\\]']]
       },
@@ -177,7 +177,8 @@
       </div>
 
       <!-- NEW FEATURE: Standalone Gemini 2.5 Flash Expert Chat -->
-      <div class="bg-slate-950 border border-slate-800 rounded-2xl p-6 shadow-xl flex flex-col">
+      <div class="bg-slate-950 border border-slate-800 rounded-2xl p-6 shadow-xl flex flex-col relative overflow-hidden">
+        
         <div class="flex items-center justify-between pb-3 border-b border-slate-850">
           <div class="flex items-center gap-2">
             <div class="p-1.5 bg-purple-500/10 border border-purple-500/20 rounded-lg text-purple-400">
@@ -188,13 +189,52 @@
               <p class="text-[10px] text-slate-500">Powered by Gemini 2.5 Flash</p>
             </div>
           </div>
-          <button onclick="clearAIConsultations()" class="text-[10px] hover:text-slate-300 underline underline-offset-2 text-slate-500 transition-colors">Clear</button>
+          <div class="flex items-center gap-2.5">
+            <button onclick="toggleApiKeyPanel()" class="text-[10px] text-slate-400 hover:text-slate-200 flex items-center gap-1 bg-slate-900 px-2 py-1 rounded border border-slate-800 transition-colors">
+              <i data-lucide="settings" class="w-3 h-3"></i>
+              <span>API Key</span>
+            </button>
+            <button onclick="clearAIConsultations()" class="text-[10px] hover:text-slate-300 underline underline-offset-2 text-slate-500 transition-colors">Clear</button>
+          </div>
+        </div>
+
+        <!-- COLLAPSIBLE API KEY CONFIGURATION PANEL -->
+        <div id="apiKeyConfigPanel" class="hidden mt-3 p-3 bg-slate-900 border border-purple-950/40 rounded-xl space-y-2.5">
+          <div class="flex items-center justify-between">
+            <span class="text-[10px] font-bold uppercase tracking-wider text-purple-400">Gemini API Key Settings</span>
+            <span class="text-[9px] text-slate-500">Stored safely on your device</span>
+          </div>
+          <p class="text-[10px] text-slate-400 leading-normal">
+            For secure independent execution on GitHub/Vercel, paste your standard Gemini API key from Google AI Studio here:
+          </p>
+          <div class="flex gap-2">
+            <input
+              type="password"
+              id="customApiKeyInput"
+              placeholder="Paste AIzaSy... key"
+              class="flex-1 bg-slate-950 border border-slate-800 rounded px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-purple-500"
+            />
+            <button
+              onclick="saveCustomApiKey()"
+              class="bg-purple-600 hover:bg-purple-700 text-white rounded px-3 py-1.5 text-xs font-semibold transition-all shrink-0"
+            >
+              Save
+            </button>
+          </div>
+          <div id="apiKeyStatus" class="text-[9px] text-stone-500 italic mt-1"></div>
         </div>
 
         <!-- Chat Output -->
         <div id="aiChatOutput" class="mt-4 space-y-3 max-h-56 overflow-y-auto pr-1 text-xs text-slate-300 leading-relaxed scroll-smooth flex-1 min-h-[150px]">
           <div class="p-2.5 bg-slate-900/60 rounded-lg border border-slate-850">
             👋 Welcome! Need deep design support? Ask me any questions about statistical model parameters, sample calculations, animal protocols, or specimen handling, and I'll analyze it instantly.
+          </div>
+          <div id="apiPromptTip" class="p-2.5 bg-purple-950/15 border border-purple-900/30 rounded-lg text-purple-300 flex gap-2">
+            <i data-lucide="key" class="w-4 h-4 shrink-0 text-purple-400 mt-0.5 animate-bounce"></i>
+            <div>
+              <span class="font-bold block">Running on GitHub/Vercel?</span>
+              Please click the <strong class="underline cursor-pointer" onclick="toggleApiKeyPanel()">API Key settings</strong> above and provide your Gemini API Key to enable active real-time consults.
+            </div>
           </div>
         </div>
 
@@ -442,7 +482,7 @@
         type: 'Non-Probability Sampling Method',
         icon: 'check-circle',
         overview: 'Researchers choose subjects deliberately based on professional judgment, selecting cases that are uniquely rich in information relative to the research question.',
-        pros: ['Highly effective for qualitative deep-dives, expert pool designs, or pilot testing', 'Eliminates irrelevant noise by focusing on target cases.'],
+        pros: ['Highly effective for qualitative deep-dives, expert panel designs, or pilot testing', 'Eliminates irrelevant noise by focusing on target cases.'],
         cons: ['High vulnerability to researcher bias', 'Completely invalid for making broad quantitative generalizations about a whole population.'],
         procedure: [
           'Define extreme, typical, critical, or expert criteria for sample inclusion.',
@@ -868,11 +908,11 @@
         title: 'Fisher’s Exact Test',
         type: 'Categorical Hypothesis Test',
         icon: 'check-circle',
-        overview: 'Calculates the exact probability of the observed distribution (and more extreme results) in a $2 \\times 2$ contingency table.',
+        overview: 'Calculates the exact probability of the observed distribution (and more extreme results) in a $2 \times 2$ contingency table.',
         pros: ['The gold standard for small sample sizes, rare clinical events, and tiny cohorts.'],
-        cons: ['Can be computationally intensive for large sample sizes or tables larger than $2 \\times 2$.'],
+        cons: ['Can be computationally intensive for large sample sizes or tables larger than $2 \times 2$.'],
         procedure: [
-          'Express cell counts as $a, b, c, d$ in a $2 \\times 2$ table.',
+          'Express cell counts as $a, b, c, d$ in a $2 \times 2$ table.',
           'Calculate hyper-geometric probability: $P = \\frac{(a+b)!(c+d)!(a+c)!(b+d)!}{n! a! b! c! d!}$.'
         ],
         quality_control: 'Mandatory fallback for contingency tables when Chi-square expected counts are too small.'
@@ -1270,6 +1310,7 @@
     window.onload = function() {
       switchTab('statistical');
       setupSearch();
+      setupApiKeyUI(); // Retrieve stored key on startup
       lucide.createIcons();
     };
 
@@ -1453,13 +1494,6 @@
       if (tab === 'test_selector') return TEST_SELECTOR_LEAVES[id];
       if (tab === 'animal_studies') return ANIMAL_LEAVES[id];
       return CLINICAL_LEAVES[id];
-    }
-
-    function getRootNodeIdByTab(tab) {
-      if (tab === 'statistical') return 'stat_root';
-      if (tab === 'test_selector') return 'test_root';
-      if (tab === 'animal_studies') return 'animal_root';
-      return 'clin_root';
     }
 
     // --- MAIN RENDER LOOP ---
@@ -2148,6 +2182,46 @@ ${selectedLeaf.quality_control ? `\n## Quality Control Checklist:\n* ${selectedL
       }, 2000);
     }
 
+    // --- CLIENT-SIDE API KEY SETUP MODULE ---
+    function setupApiKeyUI() {
+      const savedKey = localStorage.getItem('bme_gemini_api_key');
+      const inputEl = document.getElementById('customApiKeyInput');
+      const statusEl = document.getElementById('apiKeyStatus');
+      const tipEl = document.getElementById('apiPromptTip');
+
+      if (savedKey) {
+        if (inputEl) inputEl.value = savedKey;
+        if (statusEl) statusEl.innerHTML = "🟢 API Key is configured and active locally.";
+        if (tipEl) tipEl.classList.add('hidden');
+      } else {
+        if (statusEl) statusEl.innerHTML = "🔴 No custom API Key found. AI Consults will error until a key is saved.";
+        if (tipEl) tipEl.classList.remove('hidden');
+      }
+    }
+
+    function toggleApiKeyPanel() {
+      const panel = document.getElementById('apiKeyConfigPanel');
+      panel.classList.toggle('hidden');
+    }
+
+    function saveCustomApiKey() {
+      const inputEl = document.getElementById('customApiKeyInput');
+      const statusEl = document.getElementById('apiKeyStatus');
+      const tipEl = document.getElementById('apiPromptTip');
+      const keyVal = inputEl.value.trim();
+
+      if (keyVal) {
+        localStorage.setItem('bme_gemini_api_key', keyVal);
+        if (statusEl) statusEl.innerHTML = "🟢 Key saved successfully! AI consultancy is now active.";
+        if (tipEl) tipEl.classList.add('hidden');
+        setTimeout(() => toggleApiKeyPanel(), 1500);
+      } else {
+        localStorage.removeItem('bme_gemini_api_key');
+        if (statusEl) statusEl.innerHTML = "🔴 Key deleted. AI consultancy is disabled.";
+        if (tipEl) tipEl.classList.remove('hidden');
+      }
+    }
+
     // --- STANDALONE GEMINI 2.5 FLASH EXPERT CHAT ---
     async function submitAIChat() {
       const inputEl = document.getElementById('aiChatInput');
@@ -2156,6 +2230,14 @@ ${selectedLeaf.quality_control ? `\n## Quality Control Checklist:\n* ${selectedL
       const query = inputEl.value.trim();
       
       if (!query) return;
+
+      // Ensure API Key is available before trying to call
+      const activeKey = localStorage.getItem('bme_gemini_api_key') || apiKey || "";
+      if (!activeKey) {
+        appendChatMessage("ai", "⚠️ API Key Missing: Since this tool is running directly inside your browser on GitHub/Vercel, please click 'API Key' at the top of this panel and paste a valid Gemini API Key from Google AI Studio first.");
+        inputEl.value = "";
+        return;
+      }
 
       // Disable input while generating
       inputEl.disabled = true;
@@ -2188,7 +2270,7 @@ CURRENT APP STATE:
 
       // Call Gemini 2.5 Flash API with exponential backoff
       try {
-        const responseText = await callGeminiAPI(query, systemPrompt);
+        const responseText = await callGeminiAPI(query, systemPrompt, activeKey);
         appendChatMessage("ai", responseText);
       } catch (err) {
         appendChatMessage("ai", `⚠️ Connection Error: Failed to retrieve consultation after multiple retries. Details: ${err.message}. Please double check your local network state or API configs.`);
@@ -2233,6 +2315,7 @@ CURRENT APP STATE:
           👋 Chat logs cleared. Ask me any details regarding statistical design parameters, sample size equations, or clinical tube guidelines!
         </div>
       `;
+      setupApiKeyUI(); // preserve prompt tip status
     }
 
     function askAIAboutCurrentLeaf() {
@@ -2242,10 +2325,8 @@ CURRENT APP STATE:
     }
 
     // EXPONENTIAL BACKOFF API CALL WRAPPER (Gemini 2.5 Flash Guardrail Compliance)
-    async function callGeminiAPI(query, systemPrompt) {
-      // API Key variable initialization. The environment replaces "const apiKey = '';" dynamically.
-      const localKey = apiKey || "";
-      const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${localKey}`;
+    async function callGeminiAPI(query, systemPrompt, activeKey) {
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${activeKey}`;
       const payload = {
         contents: [{ parts: [{ text: query }] }],
         systemInstruction: { parts: [{ text: systemPrompt }] }
@@ -2281,6 +2362,7 @@ CURRENT APP STATE:
       }
     }
 
+    // UTILITY HELPER
     function escapeHTML(str) {
       return str.replace(/[&<>'"]/g, 
         tag => ({
