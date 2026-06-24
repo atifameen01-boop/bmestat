@@ -43,6 +43,7 @@
     ::-webkit-scrollbar-thumb:hover {
       background: #475569;
     }
+    
     .custom-glow {
       box-shadow: 0 0 40px -10px rgba(99, 102, 241, 0.15);
     }
@@ -53,13 +54,20 @@
       0%, 100% { opacity: 1; }
       50% { opacity: .7; }
     }
+
+    /* Core Formula Wrap Guardrails - guarantees formulas render as cohesive, non-breaking blocks */
+    mjx-container, .math-formula {
+      display: inline-block !important;
+      white-space: nowrap !important;
+      word-wrap: normal !important;
+    }
   </style>
 </head>
 <body class="min-h-screen bg-slate-900 text-slate-100 font-sans flex flex-col antialiased selection:bg-indigo-500 selection:text-white">
 
   <!-- HEADER SECTION -->
   <header class="border-b border-slate-800 bg-slate-950/80 backdrop-blur-md sticky top-0 z-50 px-4 py-4 md:px-8">
-    <div class="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+    <div class="max-w-[90rem] mx-auto flex flex-col md:flex-row md:items-center md:justify-between gap-4">
       
       <!-- Logo & Title -->
       <div class="flex items-center gap-3">
@@ -95,7 +103,7 @@
 
   <!-- SUB-HEADER / TAB SELECTOR -->
   <div class="bg-slate-950 border-b border-slate-850 px-4 md:px-8 py-3">
-    <div class="max-w-7xl mx-auto flex flex-col xl:flex-row items-center justify-between gap-3">
+    <div class="max-w-[90rem] mx-auto flex flex-col xl:flex-row items-center justify-between gap-3">
       
       <!-- Main Tabs -->
       <div class="flex flex-wrap bg-slate-900 p-1 rounded-xl border border-slate-800 w-full xl:w-auto gap-1 sm:gap-0">
@@ -142,7 +150,7 @@
   </div>
 
   <!-- MAIN LAYOUT -->
-  <main class="flex-1 max-w-7xl w-full mx-auto p-4 md:p-8 grid grid-cols-1 lg:grid-cols-12 gap-8">
+  <main class="flex-1 max-w-[90rem] w-full mx-auto p-4 md:p-8 grid grid-cols-1 lg:grid-cols-12 gap-8">
     
     <!-- LEFT COLUMN: ACTIVE DECISION WIZARD (7 Cols) -->
     <section class="lg:col-span-7 flex flex-col gap-6">
@@ -226,7 +234,7 @@
 
   <!-- FOOTER -->
   <footer class="border-t border-slate-800 bg-slate-950 py-6 px-4 text-center text-xs text-slate-500 mt-auto">
-    <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+    <div class="max-w-[90rem] mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
       <p>© 2026 BME Statistics Tool. Design structures modeled on mathematical &amp; physiological guidelines.</p>
       <div class="flex gap-4">
         <button onclick="switchTab('statistical')" class="hover:text-slate-300 transition-colors">Research Oracle</button>
