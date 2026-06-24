@@ -253,7 +253,7 @@
   <!-- ======================================================== -->
   <script>
     // System Configs
-    const apiKey = ""; // Injected automatically by environment runtime
+    const apiKey = "";
 
     // DECISION TREE LOGIC DATA STRUCTURES
     const STATISTICAL_TREE = {
@@ -442,7 +442,7 @@
         type: 'Non-Probability Sampling Method',
         icon: 'check-circle',
         overview: 'Researchers choose subjects deliberately based on professional judgment, selecting cases that are uniquely rich in information relative to the research question.',
-        pros: ['Highly effective for qualitative deep-dives, expert panel designs, or pilot testing', 'Eliminates irrelevant noise by focusing on target cases.'],
+        pros: ['Highly effective for qualitative deep-dives, expert pool designs, or pilot testing', 'Eliminates irrelevant noise by focusing on target cases.'],
         cons: ['High vulnerability to researcher bias', 'Completely invalid for making broad quantitative generalizations about a whole population.'],
         procedure: [
           'Define extreme, typical, critical, or expert criteria for sample inclusion.',
@@ -900,7 +900,8 @@
         cons: ['Requires large sample sizes; assumes linear relationship between predictors and the logit of the outcome.'],
         procedure: [
           'Fit logistic function: \\ln\\left(\\frac{P}{1-P}\\right) = \\beta_0 + \\beta_1 X_1 + \\dots + \\beta_k X_k$.',
-          'Convert beta coefficients to Odds Ratios: $OR = e^{\\beta}$.'
+          'Convert beta coefficients to Odds Ratios: $OR = e^{\\beta}$.',
+          'Evaluate statistical significance of each predictor using Wald tests.'
         ],
         quality_control: 'Validate classification accuracy using ROC curves and the area under the curve (AUC).'
       },
@@ -1054,7 +1055,7 @@
         description: 'Different transport media are formulated to keep either fragile viruses or metabolizing bacteria alive.',
         options: [
           { text: 'Viral or Molecular Pathogen (e.g., COVID-19, Influenza, RSV, PCR assays)', description: 'Requires sterile synthetic swabs and specific liquid transport media to stabilize nucleic acids.', nextId: 'clin_swab_viral_leaf' },
-          { text: 'Bacterial Pathogen (e.g., Strep Throat, Wound Culture, MRSA screening)', description: 'Requires preservative agar or charcoal/buffer media to keep bacterial cultures viable.', nextId: 'clin_swab_bact_leaf' }
+          { text: 'Bacterial Pathogen (e.g., Throat Swab, Wound Culture, MRSA screening)', description: 'Requires preservative agar or charcoal/buffer media to keep bacterial cultures viable.', nextId: 'clin_swab_bact_leaf' }
         ]
       }
     };
@@ -2190,7 +2191,7 @@ CURRENT APP STATE:
         const responseText = await callGeminiAPI(query, systemPrompt);
         appendChatMessage("ai", responseText);
       } catch (err) {
-        appendChatMessage("ai", "⚠️ Connection Error: Failed to retrieve consultation after multiple retries. Please double check your local network state or API configs.");
+        appendChatMessage("ai", `⚠️ Connection Error: Failed to retrieve consultation after multiple retries. Details: ${err.message}. Please double check your local network state or API configs.`);
       } finally {
         inputEl.disabled = false;
         submitBtn.disabled = false;
@@ -2211,7 +2212,7 @@ CURRENT APP STATE:
         // Parse basic markdown-style line breaks and list bullets
         let formattedText = escapeHTML(text)
           .replace(/\n/g, '<br/>')
-          .replace(/\*\*(.*?)\*\"/g, '<strong>$1</strong>')
+          .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
           .replace(/\*(.*?)\*/g, '<em>$1</em>');
         
         msgDiv.innerHTML = `<span class="text-[10px] text-purple-400 font-bold block mb-0.5">BME AI Consultant</span><div class="text-xs text-slate-200">${formattedText}</div>`;
@@ -2242,7 +2243,9 @@ CURRENT APP STATE:
 
     // EXPONENTIAL BACKOFF API CALL WRAPPER (Gemini 2.5 Flash Guardrail Compliance)
     async function callGeminiAPI(query, systemPrompt) {
-      const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+      // API Key variable initialization. The environment replaces "const apiKey = '';" dynamically.
+      const localKey = apiKey || "";
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${localKey}`;
       const payload = {
         contents: [{ parts: [{ text: query }] }],
         systemInstruction: { parts: [{ text: systemPrompt }] }
